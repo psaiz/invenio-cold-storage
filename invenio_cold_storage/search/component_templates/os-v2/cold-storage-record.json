@@ -1,0 +1,44 @@
+{
+  "template": {
+    "mappings": {
+      "dynamic": false,
+      "properties": {
+        "files": {
+          "properties": {
+            "dataset": {
+              "properties": {
+                "checksum": {
+                  "type": "keyword"
+                },
+                "filename": {
+                  "type": "keyword"
+                },
+                "size": {
+                  "type": "unsigned_long"
+                },
+                "uri": {
+                  "type": "text"
+                },
+                "uri_cold": {
+                  "type": "text"
+                }
+              },
+              "type": "object"
+            },
+            "uri_cold": {
+              "type": "text"
+            }
+          },
+          "type": "object"
+        },
+        "qos": {
+          "type": "keyword"
+        },
+        "recid": {
+          "null_value": 0,
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "template": {
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "ack": { "type": "date"},
+        "filename": {"type": "keyword"},
+        "id": {"type": "keyword"},
+        "new_filename": {"type": "keyword"},
+        "new_qos": {"type": "keyword"},
+        "record_id" : {"type" : "keyword"},
+        "submitted": {"type": "date"}
+      }
+    }
+  }
+}

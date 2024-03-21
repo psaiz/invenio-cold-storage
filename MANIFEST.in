@@ -1,0 +1,24 @@
+# -*- coding: utf-8 -*-
+#
+# This file is part of Invenio.
+# Copyright (C) 2016-2019 CERN.
+#
+# Invenio is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+
+exclude Dockerfile
+include *.rst
+include *.sh
+exclude .pypi-3.9-requirements.txt
+include *.txt
+include .dockerignore
+include .editorconfig
+include .tx/config
+include babel.ini
+include docs/requirements.txt
+include LICENSE
+prune docs/_build
+recursive-include invenio_cold_storage *.py *.json
+recursive-include tests *.py *.json
+recursive-include .github/workflows *.yml
+recursive-include var *.txt

@@ -1,0 +1,8 @@
+{
+  "composed_of": [
+    "__SEARCH_INDEX_PREFIX__cold-persistency"
+  ],
+  "index_patterns": [
+    "__SEARCH_INDEX_PREFIX__cold-persistency"
+  ]
+}
