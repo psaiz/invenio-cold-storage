@@ -5,8 +5,8 @@ import re
 
 from pkg_resources import iter_entry_points
 
-from invenio_cold_storage.transter.cp import TransferManager
-
+from invenio_cold_storage.transfer.cp import TransferManager as CPManager
+from invenio_cold_storage.transfer.fts import TransferManager as FTSManager
 
 def default_transfer():
     return TransferManager()
@@ -39,28 +39,51 @@ class Storage:
             ):
                 self._transfer.append(entry_point.load()())
         else:
-            self._cold_path = ["/opt/invenio/var/instance/data_cold"]
-            self._transfer = [TransferManager()]
-            self._hot_path = ["/home/invenio/hot_cache"]
+            self._cold_path = ["/opt/invenio/var/instance/data_cold/", 'https://eosctapublic.cern.ch:8444/eos/ctapublic/archive/opendata/atlas', 'https://eosctapublic.cern.ch:8444/eos/ctapublic/archive/opendata/cms' , 'https://eosctapublic.cern.ch:8444/eos/ctapublic/archive/opendata/lhcb' ]
+            self._transfer = [CPManager(), FTSManager(), FTSManager(), FTSManager()]
+            self._hot_path = ["/home/invenio/hot_cache", 'root://eospublic.cern.ch//eos/opendata/atlas',  'root://eospublic.cern.ch//eos/opendata/cms',  'root://eospublic.cern.ch//eos/opendata/lhcb']
+            self._transfers = {}
+            # Let's make a dictionary of the possible transfers. This is used to query the status later on
+            for t in self._transfer:
+                self._transfers[t.__class__.__module__] = t
 
+    def find_cold_url(self, file):
+        i=0
+        for prefix in self._hot_path:
+            if prefix in file:
+                return file.replace(prefix, self._cold_path[i]), self._transfer[i]
+            i+=1
+        return None, None
     def archive(self, file):
         print(f"Archiving it")
         filename = file["uri"]
         #print(f"SWAPPING {self._hot_path[0]} by {self._cold_path[0]}")
-        dest_file = filename.replace(self._hot_path[0], self._cold_path[0])
+        dest_file, transfer = self.find_cold_url(filename)
+        if not dest_file:
+            print(f"WE CAN'T GUESS THE destination path :( of {filename}" )
+            return []
+        id = transfer.archive(filename.replace('root://', 'https://'), dest_file)
+        if not id:
+            print("Error creating the transfer")
+            return []
         return {
-            "id": self._transfer[0].archive(filename, dest_file),
+            "id": id,
             "new_qos": "cold",
             "new_filename": dest_file,
             "filename": filename,
+            "transfer": transfer.__class__.__module__
         }
 
     def stage(self, file):
-        filename = file["uri_cold"]
-        dest_file = filename.replace(self._cold_path[0], self._hot_path[0])
+        filename = file["tags"]["uri_cold"]
+        dest_file, transfer = self.find_hot_url(filename)#filename.replace(self._cold_path[0], self._hot_path[0])
         print(f" Staging it")
+        id = transfer.stage(filename, dest_file)
+        if not id:
+            print("Error creating the transfer")
+            return []
         return {
-            "id": self._transfer[0].stage(filename, dest_file),
+            "id": id,
             "new_qos": "hot",
             "new_filename": dest_file,
             "filename": filename,

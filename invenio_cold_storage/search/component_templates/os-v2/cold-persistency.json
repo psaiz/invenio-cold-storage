@@ -6,17 +6,14 @@
         "ack": {
           "type": "date"
         },
-        "dataset": {
-          "type": "keyword"
-        },
-        "filename": {
+        "file_id": {
           "type": "keyword"
         },
         "id": {
           "type": "keyword"
         },
-        "key": {
-          "type": "keyword"
+        "last_check": {
+          "type": "date"
         },
         "new_filename": {
           "type": "keyword"
@@ -24,11 +21,20 @@
         "new_qos": {
           "type": "keyword"
         },
-        "record_id": {
+        "reason": {
+          "type":  "keyword"
+        },
+        "record_uuid": {
           "type": "keyword"
+        },
+        "status": {
+          "type":  "keyword"
         },
         "submitted": {
           "type": "date"
+        },
+        "transfer": {
+          "type":  "keyword"
         }
       }
     }

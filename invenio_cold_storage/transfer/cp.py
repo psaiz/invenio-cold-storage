@@ -36,4 +36,4 @@ class TransferManager:
 
     def transfer_status(self, _):
         """Return the status of a particular transfer"""
-        return "DONE"
+        return "DONE", None

@@ -16,7 +16,7 @@ from datetime import timedelta
 
 
 CheckTransfersTask = {
-    "task": "invenio_cold_storage.tasks.chcek_transfers",
+    "task": "invenio_cold_storage.tasks.check_transfers",
     "schedule": timedelta(minutes=1),
 }
 
