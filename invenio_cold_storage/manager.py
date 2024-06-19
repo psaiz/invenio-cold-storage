@@ -15,51 +15,38 @@ class ColdStorageManager:
             return "uri_cold" in file
         return "uri" in file
 
-    def _move_record_entry(self, record_id, file, qos, move_function, entry=None):
-        if entry:
-            print("    We are looking at an entry of the dataset ", end="")
-            if self._is_qos(entry, qos):
-                print(f" already {qos}: ignoring it.")
-                return
+    def _move_record_entry(self, record_id, file, qos, move_function):
+        transfers = []
+        files_todo = [file]
 
-            if self._persistency.is_scheduled(entry, qos):
-                print(f" already scheduled for {qos}: ignoring it.")
-                return
-        else:
-            if self._is_qos(file, qos):
-                print(f" already {qos}: ignoring it.")
-                return
+        if "dataset" in file:
+            print(f"  The file is a dataset. Checking also the entries of the dataset")
+            files_todo += file["dataset"]
 
-            if self._persistency.is_scheduled(file, qos):
-                print(f" already scheduled for {qos}: ignoring it.")
-                return
-
-        entry = move_function(file)
-        entry["record_id"] = record_id
-        self._persistency.insert_transfer(entry)
-        return entry["id"]
+        for my_file in files_todo:
+       #     print(f"    Checking the file {my_file['key']}...", end="")
+            if self._is_qos(my_file, qos):
+                print(f" it is already {qos}")
+            elif self._persistency.is_scheduled(my_file, qos):
+                print("It is already scheduled")
+            else:
+                #print("WE SHOULD MOVE IT")
+                entry = move_function(my_file)
+                entry["record_id"] = record_id
+                entry["key"] = my_file["key"]
+                entry["dataset"] = file["key"]
+                transfers += [self._persistency.insert_transfer(entry)]
+        return transfers
 
     def _move_record(self, record_id, files, qos, move_function):
         # Let's find the files inside the record
-        files = self._catalog.get_files_from_record(record_id, files)
-        if not files:
-            return
         transfers = []
-        for file in files:
-            transfer_id = self._move_record_entry(record_id, file, qos, move_function)
-            if transfer_id:
-                transfers.append(transfer_id)
-            if "dataset" in file:
-                print(
-                    f"  The file is a dataset. Checking also the entries of the dataset"
-                )
-                for entry in file["dataset"]:
-                    self._move_record_entry(record_id, file, qos, move_function, entry)
+        for file in self._catalog.get_files_from_record(record_id, files):
+            transfers += self._move_record_entry(record_id, file, qos, move_function)
 
         return transfers
 
     def archive(self, record_id, files):
-        print("VAMOS A  ARCHIVAR ", record_id)
         return self._move_record(record_id, files, "cold", self._storage.archive)
 
     def stage(self, record_id, files):
@@ -68,23 +55,26 @@ class ColdStorageManager:
     def clear_hot(self, record_id, files):
         # Let's find the files inside the record
         cleared = False
-        files = self._catalog.get_files_from_record(record_id, files)
-        if not files:
-            return False
-        for file in files:
-            if not self._is_qos(file, "cold"):
-                print(
-                    "I don't want to remove the hot copy, since the cold does not exist!"
-                )
-                continue
-            print(" the file is cold and ", end="")
-            if "uri" not in file:
-                print("the file is not in hot. Ignoring it")
-                continue
-            print(f"ready to delete {file['uri']}")
-            self._storage.clear_hot(file["uri"])
-            self._catalog.update_record(record_id, "delete", file["uri"])
-            cleared = True
+        for file in self._catalog.get_files_from_record(record_id, files):
+            files_todo = [file]
+
+            if "dataset" in file:
+                print(f"  The file is a dataset. Checking also the entries of the dataset")
+                files_todo += file["dataset"]
+            for my_file in files_todo:
+                if not self._is_qos(my_file, "cold"):
+                    print(
+                        "I don't want to remove the hot copy, since the cold does not exist!"
+                    )
+                    continue
+                print(" the file is cold and ", end="")
+                if "uri" not in my_file:
+                    print("the file is not in hot. Ignoring it")
+                    continue
+                print(f"ready to be deleted")
+                self._storage.clear_hot(my_file["uri"])
+                self._catalog.update_record(record_id, "delete", my_file["uri"], "deleted", my_file['key'], file['key'])
+                cleared = True
         return cleared
 
     def check_current_transfers(self):
@@ -99,16 +89,19 @@ class ColdStorageManager:
             if status == "DONE":
                 print(" just finished! Let's update the catalog and mark it as done")
                 entry = self._persistency.get_transfer_details(transfer)
-                self._catalog.update_record(
+                if self._catalog.update_record(
                     entry["_source"]["record_id"],
                     "add",
                     entry["_source"]["filename"],
                     entry["_source"]["new_qos"],
                     entry["_source"]["new_filename"],
-                )
-                self._persistency.ack_transfer(transfer)
+                    entry["_source"]["dataset"],
+                ):
+                    self._persistency.ack_transfer(transfer)
+                # self._persistency.fail_transfer(transfer)
             else:
                 print(f" status {status}")
+        print("Returning", all_status)
         return all_status
 
     def settings(self):

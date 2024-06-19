@@ -20,16 +20,21 @@ class Persistency:
                 "new_filename": entry["new_filename"],
                 "record_id": entry["record_id"],
                 "filename": entry["filename"],
+                "key": entry["key"],
+                "dataset": entry["dataset"],
                 "submitted": now,
             },
             refresh=True,
         )
+        return entry["id"]
 
     def ack_transfer(self, id):
         now = int(time() * 1000)
+        print(f"MARKING THE TRANSFER {id} as done")
         self._search_client.update(
             self._index, id, body={"doc": {"ack": now}}, refresh=True
         )
+        print("DONE")
 
     def get_transfers(self):
         ids = []
@@ -66,6 +71,8 @@ class Persistency:
                 },
             )
         except search.exceptions.NotFoundError:
-            print("There is not even an index for the transfers... nothing is scheduled")
+            print(
+                "There is not even an index for the transfers... nothing is scheduled"
+            )
             return False
         return result["count"] > 0

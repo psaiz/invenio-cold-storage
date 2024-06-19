@@ -76,14 +76,6 @@ def list(record, file):
                 if "uri_cold" in sub_file:
                     print(f"        * Cold copy: {sub_file['uri_cold']}")
 
-
-@cold.command()
-@with_appcontext
-def check_current_transfers():
-    m = ColdStorageManager(current_app)
-    m.check_current_transfers()
-
-
 @cold.command()
 @with_appcontext
 @argument_record

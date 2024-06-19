@@ -22,7 +22,7 @@ def default_hot_path():
 
 class Storage:
     def __init__(self, app=None):
-        if app:
+        if False:  # app:
             self._hot_path = []
             for entry_point in iter_entry_points(
                 "invenio_cold_storage.storage", name="hot_path"
@@ -41,12 +41,12 @@ class Storage:
         else:
             self._cold_path = ["/opt/invenio/var/instance/data_cold"]
             self._transfer = [TransferManager()]
-            self._hot_path = ["/cold/data"]
+            self._hot_path = ["/home/invenio/hot_cache"]
 
     def archive(self, file):
-        print(f"READY TO MOVE THE FILE {file['key']}, with {file['uri']}")
+        print(f"Archiving it")
         filename = file["uri"]
-        print(f"SWAPPING {self._hot_path[0]} by {self._cold_path[0]}")
+        #print(f"SWAPPING {self._hot_path[0]} by {self._cold_path[0]}")
         dest_file = filename.replace(self._hot_path[0], self._cold_path[0])
         return {
             "id": self._transfer[0].archive(filename, dest_file),
@@ -58,7 +58,7 @@ class Storage:
     def stage(self, file):
         filename = file["uri_cold"]
         dest_file = filename.replace(self._cold_path[0], self._hot_path[0])
-        print(f" Staging into {dest_file}")
+        print(f" Staging it")
         return {
             "id": self._transfer[0].stage(filename, dest_file),
             "new_qos": "hot",
@@ -67,9 +67,9 @@ class Storage:
         }
 
     def clear_hot(self, filename):
-        print(f"Ready to delete {filename}")
+        #print(f"Ready to delete {filename}")
         try:
-            os.remove(re.sub("^file://[^/]*/", "", filename))
+            os.remove(re.sub("^file://[^/]*/", "/", filename))
         except Exception as e:
             print(f"Error deleting the file {filename} :*(", e)
 

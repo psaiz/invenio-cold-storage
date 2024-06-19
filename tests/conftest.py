@@ -23,10 +23,8 @@ def fake_validate_endpoint(self):
 
 @pytest.fixture()
 def cold_storage_manager(database, search):
-    print("Fixture for the manager")
     try:
         # TODO: isn't search_clear fixture supposed to do this?
-        print("DELETING SSOME INDICES")
         search.indices.delete("cold-persistency")
         search.indices.delete("records-record-v1.0.0")
     except Exception as e:
@@ -36,8 +34,12 @@ def cold_storage_manager(database, search):
 
 
 @pytest.fixture()
-def cold_storage_record(cold_storage_manager, database, search):
+def cold_storage_record(database, search):
     print("Creating a test record and calling the manager")
+    filename = "/home/invenio/hot_cache/var/data/my_doc.txt"
+    f = open(filename, "w")
+    f.write("DD")
+    f.close()
     data = {
         #   "$schema": "file:///records/cold_storage-v1.0.0.json",
         "title": "My test record",
@@ -46,11 +48,16 @@ def cold_storage_record(cold_storage_manager, database, search):
                 "key": "mydoc.txt",
                 "checksum": "adler32:c4f2ef5e",
                 "size": 5,
-                "uri": "file:///cold/data/var/data/my_doc.txt",
+                "uri": f"file://{filename}",
             },
         ],
+        "category": {"primary": "single_entry", "secondary": "test"},
         "recid": 54321,
     }
+    return _store_record(data, database, search)
+
+
+def _store_record(data, database, search):
     rec_uuid = uuid.uuid4()
     name = "local"
     location = Location.get_by_name(name)
@@ -64,7 +71,19 @@ def cold_storage_record(cold_storage_manager, database, search):
     RecordIndexer().index_by_id(r.id)
     search.indices.refresh("*")
     print("The test record is", r)
-    yield r
+    return r
+
+
+@pytest.fixture()
+def cold_storage_dataset(database, search):
+    print("creating a dataset example")
+    data = {
+        "title": "My example dataset",
+        "files": [],
+        "category": {"primary": "dataset", "secondary": "test"},
+        "recid": 1623,
+    }
+    return _store_record(data, database, search)
 
 
 @pytest.fixture(scope="module")

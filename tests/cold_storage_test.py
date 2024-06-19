@@ -34,12 +34,13 @@ def test_archive(cold_storage_manager, cold_storage_record, search):
     print("Cleaning the hot copy should work")
     assert cold_storage_manager.clear_hot(record_recid, files=[])
 
-    # Cleaning again should fail
+    print("Cleaning again should fail")
     assert not cold_storage_manager.clear_hot(record_recid, files=[])
 
     # At this point, the file should have only 1 copy
     assert copies(cold_storage_record.id) == 1
 
+    print("Finally, let's stage it back")
     stage = cold_storage_manager.stage(record_recid, files=[])
     assert len(stage) == 1
 
@@ -47,3 +48,7 @@ def test_archive(cold_storage_manager, cold_storage_record, search):
     assert transfers == {stage[0]: "DONE"}
 
     assert copies(cold_storage_record.id) == 2
+
+
+def test_dataset(cold_storage_manager, cold_storage_dataset):
+    print("Checking if this thing works with a dataset")
