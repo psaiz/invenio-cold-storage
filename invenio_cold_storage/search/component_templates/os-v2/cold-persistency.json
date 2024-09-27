@@ -3,13 +3,39 @@
     "mappings": {
       "dynamic": "strict",
       "properties": {
-        "ack": { "type": "date"},
-        "filename": {"type": "keyword"},
-        "id": {"type": "keyword"},
-        "new_filename": {"type": "keyword"},
-        "new_qos": {"type": "keyword"},
-        "record_id" : {"type" : "keyword"},
-        "submitted": {"type": "date"}
+        "ack": {
+          "type": "date"
+        },
+        "file_id": {
+          "type": "keyword"
+        },
+        "id": {
+          "type": "keyword"
+        },
+        "last_check": {
+          "type": "date"
+        },
+        "new_filename": {
+          "type": "keyword"
+        },
+        "new_qos": {
+          "type": "keyword"
+        },
+        "reason": {
+          "type":  "keyword"
+        },
+        "record_uuid": {
+          "type": "keyword"
+        },
+        "status": {
+          "type":  "keyword"
+        },
+        "submitted": {
+          "type": "date"
+        },
+        "transfer": {
+          "type":  "keyword"
+        }
       }
     }
   }

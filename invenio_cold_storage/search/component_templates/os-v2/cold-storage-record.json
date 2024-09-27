@@ -5,25 +5,25 @@
       "properties": {
         "files": {
           "properties": {
-            "dataset": {
-              "properties": {
-                "checksum": {
-                  "type": "keyword"
-                },
-                "filename": {
-                  "type": "keyword"
-                },
-                "size": {
-                  "type": "unsigned_long"
-                },
-                "uri": {
-                  "type": "text"
-                },
-                "uri_cold": {
-                  "type": "text"
-                }
-              },
-              "type": "object"
+            "uri_cold": {
+              "type": "text"
+            }
+          },
+          "type": "object"
+        },
+        "dataset": {
+          "properties": {
+            "checksum": {
+              "type": "keyword"
+            },
+            "filename": {
+              "type": "keyword"
+            },
+            "size": {
+              "type": "unsigned_long"
+            },
+            "uri": {
+              "type": "text"
             },
             "uri_cold": {
               "type": "text"
